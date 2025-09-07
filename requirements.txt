@@ -1,0 +1,4 @@
+praw==7.8.1
+pillow==11.3.0
+python-dotenv==1.1.1
+pyinstaller==6.3.0
