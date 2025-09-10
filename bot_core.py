@@ -1,7 +1,37 @@
 # bot_core.py
 import praw
 import random
+import os
+import sys
 from datetime import datetime
+
+# Fix SSL certificate issues for PyInstaller
+def setup_ssl_for_pyinstaller():
+    """Setup SSL certificates for PyInstaller bundled apps"""
+    if getattr(sys, 'frozen', False):
+        # Running in PyInstaller bundle
+        import certifi
+        import ssl
+        
+        # Get the bundled certificate path
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            cert_path = os.path.join(sys._MEIPASS, 'certifi', 'cacert.pem')
+            if os.path.exists(cert_path):
+                os.environ['SSL_CERT_FILE'] = cert_path
+                os.environ['REQUESTS_CA_BUNDLE'] = cert_path
+            else:
+                # Fallback to certifi's default
+                os.environ['SSL_CERT_FILE'] = certifi.where()
+                os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
+        else:
+            # Fallback
+            import certifi
+            os.environ['SSL_CERT_FILE'] = certifi.where()
+            os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
+
+# Call SSL setup
+setup_ssl_for_pyinstaller()
 
 class RedditBot:
     def __init__(self):
