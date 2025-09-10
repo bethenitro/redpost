@@ -389,12 +389,27 @@ class RedditBotDashboard:
     def test_connection(self):
         """Test Reddit API connection"""
         try:
-            if self.bot.authenticate(
-                self.client_id_var.get(),
-                self.client_secret_var.get(),
-                self.username_var.get(),
-                self.password_var.get()
-            ):
+            # Get and validate credentials
+            client_id = self.client_id_var.get().strip()
+            client_secret = self.client_secret_var.get().strip()
+            username = self.username_var.get().strip()
+            password = self.password_var.get().strip()
+            
+            # Check for empty fields
+            if not client_id:
+                messagebox.showerror("Error", "Client ID is required")
+                return
+            if not client_secret:
+                messagebox.showerror("Error", "Client Secret is required")
+                return
+            if not username:
+                messagebox.showerror("Error", "Username is required")
+                return
+            if not password:
+                messagebox.showerror("Error", "Password is required")
+                return
+            
+            if self.bot.authenticate(client_id, client_secret, username, password):
                 messagebox.showinfo("Success", f"Connected successfully as {self.bot.get_username()}")
                 self.log("✅ Reddit API connection successful")
             else:

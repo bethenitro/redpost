@@ -11,9 +11,19 @@ class RedditBot:
     def authenticate(self, client_id, client_secret, username, password):
         """Authenticate with Reddit API"""
         try:
-            # Validate inputs
-            if not all([client_id, client_secret, username, password]):
-                raise Exception("All credentials must be provided")
+            # Validate inputs - check for empty strings and None values
+            if not client_id or not client_secret or not username or not password:
+                raise Exception("All credentials must be provided and cannot be empty")
+            
+            # Strip whitespace from all credentials
+            client_id = str(client_id).strip()
+            client_secret = str(client_secret).strip()
+            username = str(username).strip()
+            password = str(password).strip()
+            
+            # Double-check after stripping
+            if not client_id or not client_secret or not username or not password:
+                raise Exception("All credentials must be provided and cannot be empty")
             
             self.reddit = praw.Reddit(
                 client_id=client_id,
@@ -35,7 +45,9 @@ class RedditBot:
             self.authenticated = False
             # Provide more specific error messages for common issues
             error_msg = str(e)
-            if "401" in error_msg or "invalid_grant" in error_msg:
+            if "'_NotSet' object has no attribute" in error_msg:
+                raise Exception("Authentication failed: One or more credentials are empty or invalid")
+            elif "401" in error_msg or "invalid_grant" in error_msg:
                 raise Exception("Authentication failed: Invalid username/password or incorrect app credentials")
             elif "403" in error_msg:
                 raise Exception("Authentication failed: Access forbidden - check your app permissions")
