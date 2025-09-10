@@ -389,35 +389,31 @@ class RedditBotDashboard:
     def test_connection(self):
         """Test Reddit API connection"""
         try:
-            # Get and validate credentials
-            client_id = self.client_id_var.get().strip()
-            client_secret = self.client_secret_var.get().strip()
-            username = self.username_var.get().strip()
-            password = self.password_var.get().strip()
+            # Get credentials
+            client_id = self.client_id_var.get()
+            client_secret = self.client_secret_var.get()
+            username = self.username_var.get()
+            password = self.password_var.get()
             
-            # Check for empty fields
-            if not client_id:
-                messagebox.showerror("Error", "Client ID is required")
-                return
-            if not client_secret:
-                messagebox.showerror("Error", "Client Secret is required")
-                return
-            if not username:
-                messagebox.showerror("Error", "Username is required")
-                return
-            if not password:
-                messagebox.showerror("Error", "Password is required")
-                return
+            self.log("🔄 Testing Reddit API connection...")
+            self.update_status("Testing connection...")
             
+            # Attempt authentication
             if self.bot.authenticate(client_id, client_secret, username, password):
-                messagebox.showinfo("Success", f"Connected successfully as {self.bot.get_username()}")
-                self.log("✅ Reddit API connection successful")
+                username_confirmed = self.bot.get_username()
+                messagebox.showinfo("Success", f"✅ Connected successfully!\n\nAuthenticated as: u/{username_confirmed}")
+                self.log(f"✅ Reddit API connection successful - authenticated as u/{username_confirmed}")
+                self.update_status("Connected successfully")
             else:
-                messagebox.showerror("Error", "Failed to authenticate with Reddit API")
+                messagebox.showerror("Error", "❌ Authentication failed for unknown reason")
                 self.log("❌ Reddit API authentication failed")
+                self.update_status("Authentication failed")
+                
         except Exception as e:
-            messagebox.showerror("Error", f"Connection failed: {str(e)}")
-            self.log(f"❌ Connection error: {str(e)}")
+            error_message = str(e)
+            messagebox.showerror("Connection Failed", f"❌ {error_message}")
+            self.log(f"❌ Connection error: {error_message}")
+            self.update_status("Connection failed")
     
     def preview_posts(self):
         """Preview what posts will be made with visual thumbnails"""

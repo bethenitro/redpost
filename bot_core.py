@@ -11,19 +11,25 @@ class RedditBot:
     def authenticate(self, client_id, client_secret, username, password):
         """Authenticate with Reddit API"""
         try:
-            # Validate inputs - check for empty strings and None values
-            if not client_id or not client_secret or not username or not password:
-                raise Exception("All credentials must be provided and cannot be empty")
+            # Convert to strings and strip whitespace
+            client_id = str(client_id).strip() if client_id else ""
+            client_secret = str(client_secret).strip() if client_secret else ""
+            username = str(username).strip() if username else ""
+            password = str(password).strip() if password else ""
             
-            # Strip whitespace from all credentials
-            client_id = str(client_id).strip()
-            client_secret = str(client_secret).strip()
-            username = str(username).strip()
-            password = str(password).strip()
+            # Validate inputs after processing
+            if not client_id:
+                raise Exception("Client ID is required and cannot be empty")
+            if not client_secret:
+                raise Exception("Client Secret is required and cannot be empty")
+            if not username:
+                raise Exception("Username is required and cannot be empty")
+            if not password:
+                raise Exception("Password is required and cannot be empty")
             
-            # Double-check after stripping
-            if not client_id or not client_secret or not username or not password:
-                raise Exception("All credentials must be provided and cannot be empty")
+            print(f"Attempting authentication for user: {username}")
+            print(f"Client ID length: {len(client_id)}")
+            print(f"Client Secret length: {len(client_secret)}")
             
             self.reddit = praw.Reddit(
                 client_id=client_id,
@@ -33,26 +39,32 @@ class RedditBot:
                 user_agent=f"RedditBot/1.0 by {username}"
             )
             
-            # Test authentication
+            # Test authentication by getting user info
+            print("Testing authentication...")
             user = self.reddit.user.me()
-            if user is None:
-                raise Exception("Authentication failed - unable to retrieve user info")
+            print(f"Authentication successful for user: {user.name}")
                 
             self.authenticated = True
             return True
         
         except Exception as e:
             self.authenticated = False
-            # Provide more specific error messages for common issues
             error_msg = str(e)
-            if "'_NotSet' object has no attribute" in error_msg:
-                raise Exception("Authentication failed: One or more credentials are empty or invalid")
+            print(f"Authentication error: {error_msg}")
+            
+            # Provide more specific error messages for common issues
+            if "Client ID is required" in error_msg or "Client Secret is required" in error_msg or "Username is required" in error_msg or "Password is required" in error_msg:
+                raise Exception(error_msg)  # Pass through our validation errors
             elif "401" in error_msg or "invalid_grant" in error_msg:
-                raise Exception("Authentication failed: Invalid username/password or incorrect app credentials")
+                raise Exception("Authentication failed: Invalid username/password combination")
             elif "403" in error_msg:
                 raise Exception("Authentication failed: Access forbidden - check your app permissions")
             elif "invalid_client" in error_msg:
                 raise Exception("Authentication failed: Invalid Client ID or Client Secret")
+            elif "429" in error_msg:
+                raise Exception("Authentication failed: Too many requests - please wait and try again")
+            elif "prawcore.exceptions.ResponseException" in error_msg:
+                raise Exception("Authentication failed: Reddit API error - check your credentials")
             else:
                 raise Exception(f"Authentication failed: {error_msg}")
     
